@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Journey Together</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    .hearts {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="0" y="15" font-size="15" fill="red">❤</text></svg>');
+      background-repeat: repeat;
+      opacity: 0.3;
+    }
+    .card-container {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      position: relative;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      min-height: 260px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .flipped .front {
+      transform: rotateY(180deg);
+    }
+    .flipped .back {
+      transform: rotateY(0deg);
+    }
+    .front,
+    .back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      transition: transform 0.6s;
+      border-radius: 15px;
+    }
+    .front {
+      background-color: #fff0f6;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .back {
+      background-color: #ffe0ec;
+      transform: rotateY(180deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-size: 1.1rem;
+      line-height: 1.4;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .options button {
+      flex: 0 1 45%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #ff5e99;
+      color: white;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .options button::before {
+      content: attr(data-index) ". ";
+    }
+    .next-btn {
+      background: #ff3e83;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      display: none;
+      z-index: 2;
+    }
+    @media screen and (max-width: 480px) {
+      .card {
+        padding: 15px;
+        min-height: 250px;
+      }
+      .options button {
+        font-size: 0.85rem;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hearts"></div>
+  <div class="card-container">
+    <div class="card" id="card">
+      <div class="front" id="question-box">
+        <h3 id="question"></h3>
+        <div class="options" id="options"></div>
+      </div>
+      <div class="back" id="poem-part"></div>
+    </div>
+    <div style="z-index: 2; margin-bottom: 40px;">
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "What is the nickname I gave you?",
+        options: ["Munchkin", "Babli", "Babygirl", "Sunshine"],
+        answer: "Munchkin",
+        poem: "Months ago, our paths aligned,\nSince then, joy and love combined."
+      },
+      {
+        question: "What is my favorite song?",
+        options: ["Kya mujhe pyar hai", "Fakira", "Mann mera", "Sanam re"],
+        answer: "Mann mera",
+        poem: "From temple walks to arcade plays,\nYou lit up all my dullest days."
+      },
+      {
+        question: "What is my favorite sport?",
+        options: ["Cricket", "Football", "Badminton", "Tennis"],
+        answer: "Football",
+        poem: "Exploring monuments hand in hand,\nTogether we’ve seen wonders so grand."
+      },
+      {
+        question: "Which movie did we see together?",
+        options: ["Jab we met", "Hum tum", "Bhool bhulaiya", "Love aaj kal"],
+        answer: "Hum tum",
+        poem: "With every kiss, a spark so true,\nIn your arms, I found my view."
+      },
+      {
+        question: "Do you love me?",
+        options: ["Yes", "No", "I am obsessed", "I hate you"],
+        answer: "I am obsessed",
+        poem: "Exchanging gifts and sweet surprise,\nYou are my heart’s forever prize."
+      }
+    ];
+
+    let current = 0;
+    const questionBox = document.getElementById("question-box");
+    const optionsBox = document.getElementById("options");
+    const questionText = document.getElementById("question");
+    const poemPart = document.getElementById("poem-part");
+    const card = document.getElementById("card");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function showQuestion() {
+      const q = questions[current];
+      questionText.textContent = q.question;
+      optionsBox.innerHTML = "";
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.setAttribute("data-index", String.fromCharCode(97 + index));
+        btn.onclick = () => checkAnswer(opt);
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const correct = questions[current].answer;
+      if (selected === correct) {
+        poemPart.textContent = questions[current].poem;
+        card.classList.add("flipped");
+        nextBtn.style.display = "inline-block";
+      } else {
+        alert("Try again, my love ♥");
+      }
+    }
+
+    function nextQuestion() {
+      card.classList.remove("flipped");
+      nextBtn.style.display = "none";
+      current++;
+      if (current < questions.length) {
+        setTimeout(showQuestion, 600);
+      } else {
+        questionText.textContent = "That's our love story ♥";
+        optionsBox.innerHTML = "<p style='font-size:1.2rem;'>Thank you for being in this journey with me!</p>";
+      }
+    }
+
+    showQuestion();
+  </script>
+</body>
+</html>
